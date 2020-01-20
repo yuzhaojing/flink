@@ -94,6 +94,7 @@ public class FlinkMasterDeploymentDecorator extends Decorator<Deployment, Kubern
 		final PodSpec podSpec = new PodSpecBuilder()
 			.withServiceAccountName(serviceAccount)
 			.withVolumes(configMapVolume)
+			.withImagePullSecrets(KubernetesUtils.getImagePullSecrets(flinkConfig))
 			.withContainers(container)
 			.build();
 

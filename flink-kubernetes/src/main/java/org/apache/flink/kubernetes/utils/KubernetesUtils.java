@@ -30,6 +30,8 @@ import org.apache.flink.util.FlinkRuntimeException;
 
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.KeyToPath;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
+import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
@@ -49,6 +51,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.apache.flink.configuration.GlobalConfiguration.FLINK_CONF_FILENAME;
 import static org.apache.flink.kubernetes.utils.Constants.CONFIG_FILE_LOG4J_NAME;
@@ -263,6 +267,22 @@ public class KubernetesUtils {
 			.addToLimits(Constants.RESOURCE_NAME_MEMORY, memQuantity)
 			.addToLimits(Constants.RESOURCE_NAME_CPU, cpuQuantity)
 			.build();
+	}
+
+	/**
+	 * Get imagePullSecrets for job manager and task manager pod.
+	 *
+	 * @param flinkConfig The Flink configuration.
+	 * @return imagePullSecrets.
+	 */
+	public static List<LocalObjectReference> getImagePullSecrets(Configuration flinkConfig) {
+		final Optional<List<String>> optional = flinkConfig.getOptional(KubernetesConfigOptions.CONTAINER_IMAGE_PULL_SECRETS);
+		final List<LocalObjectReference> imagePullSecrets = new ArrayList<>();
+		optional.ifPresent(strings -> imagePullSecrets.addAll(strings
+			.stream()
+			.map(ips -> new LocalObjectReferenceBuilder().withName(ips.trim()).build())
+			.collect(Collectors.toList())));
+		return imagePullSecrets;
 	}
 
 	private static String getJavaOpts(Configuration flinkConfig, ConfigOption<String> configOption) {

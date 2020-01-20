@@ -82,6 +82,7 @@ public class TaskManagerPodDecorator extends Decorator<Pod, KubernetesPod> {
 		pod.setSpec(new PodSpecBuilder()
 			.withVolumes(configMapVolume)
 			.withContainers(createTaskManagerContainer(flinkConfig, hasLogback, hasLog4j, taskManagerRpcPort))
+			.withImagePullSecrets(KubernetesUtils.getImagePullSecrets(flinkConfig))
 			.build());
 		return pod;
 	}
